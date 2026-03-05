@@ -1,28 +1,14 @@
 'use server';
+import { Resend } from 'resend';
 
-import nodemailer from 'nodemailer';
-
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST,
-  port: 465,
-  secure: true,
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
-  },
-  tls: {
-    rejectUnauthorized: false  // ← this fixes the certificate error
-  },
-  connectionTimeout: 10000,
-  greetingTimeout: 10000,
-});
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function sendEmailAction(data: any, type: 'inquiry' | 'consultation') {
-  const subject = type === 'inquiry' 
-    ? `🚀 New Project Inquiry: ${data.name}` 
+  const subject = type === 'inquiry'
+    ? `🚀 New Project Inquiry: ${data.name}`
     : `📅 Consultation Request: ${data.name}`;
 
-  const htmlContent = type === 'inquiry' 
+  const htmlContent = type === 'inquiry'
     ? `
       <h2>New Project Inquiry</h2>
       <p><strong>Name:</strong> ${data.name}</p>
@@ -42,13 +28,9 @@ export async function sendEmailAction(data: any, type: 'inquiry' | 'consultation
     `;
 
   try {
-    // Test connection first
-    await transporter.verify()
-    console.log('SMTP connection verified ✅')
-
-    await transporter.sendMail({
-      from: `"PapaTiger" <${process.env.SMTP_USER}>`,
-      to: process.env.SMTP_USER,
+    await resend.emails.send({
+      from: 'PapaTiger <hello@papatiger.tech>',
+      to: 'hello@papatiger.tech',
       replyTo: data.email,
       subject: subject,
       html: htmlContent,
